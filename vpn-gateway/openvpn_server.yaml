@@ -1,11 +1,11 @@
 type: install
 version: 1.4
 name: OpenVPN-Server
-logo: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/img/gateway_icon.png
+logo: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/img/openvpn_iconv.png
 homepage: https://jelastic.com/
 baseUrl: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/
 description: |
-    OpenVPN Server
+    OpenVPN is an open-source commercial software that implements virtual private network techniques to create secure point-to-point or site-to-site connections in routed or bridged configurations and remote access facilities. It uses a custom security protocol that utilizes SSL/TLS for key exchange.
 skipNodeEmails: true
 
 nodes:
@@ -36,7 +36,9 @@ success:
      
      Please, use script /root/openvpn-install.sh for  
      - add new user  
-     - revoke an existing user  
+     - revoke an existing user 
+     
+     Copy OpenVPN client configuration
      ```
      ${globals.clientConfig}
      ```

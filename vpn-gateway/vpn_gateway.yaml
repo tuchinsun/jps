@@ -90,16 +90,9 @@ settings:
       name: extip
       editable: true
 
-    - type: string
-      caption: Nodes SSH PORT
-      name: sshport
-      editable: true
-      default: 22
-      inputSize: 5
-
     - type: text
-      caption: Nodes IP
-      name: ips
+      caption: Nodes IP:PORT
+      name: hnnodes_ips
       editable: true
 
 nodes:
@@ -124,7 +117,7 @@ actions:
         cmd [centos7]: |-
           yum install openvpn -y
           systemctl enable rc-local
-          wget -O "/etc/systemd/system/vpn@.service" "https://raw.githubusercontent.com/tuchinsun/jps/master/vpn-gateway/config/systemd/openvpn/openvpn-client%40.service"
+          wget -O "/etc/systemd/system/vpn@.service" "${baseUrl}/config/systemd/openvpn/openvpn-client%40.service"
           mkdir -p /etc/systemd/system/vpn@.service.d
           echo -e "[Service]\nLimitNPROC=infinity" > /etc/systemd/system/vpn@.service.d/override.conf
           systemctl daemon-reload
@@ -139,7 +132,7 @@ actions:
     - if (${settings.vpntype} === 2):
         cmd [centos7]: |-
           yum install openconnect -y
-          wget -O "/etc/systemd/system/vpn@.service" "https://raw.githubusercontent.com/tuchinsun/jps/master/vpn-gateway/config/systemd/openconnect/openconnect%40.service"
+          wget -O "/etc/systemd/system/vpn@.service" "${baseUrl}/config/systemd/openconnect/openconnect%40.service"
 
 
     # AnyConnect
@@ -148,25 +141,22 @@ actions:
           yum install vpnc -y
           echo -e "IPSec gateway ${settings.vpn_server_name}\nIPSec ID ${settings.anyconnect_group_name}\nIPSec secret ${settings.anyconnect_group_pass}" > /etc/vpnc/client.conf
           echo -e "Xauth username ${settings.anyconnect_user_name}\nXauth password ${settings.anyconnect_user_pass}" >> /etc/vpnc/client.conf
-          wget -O "/etc/systemd/system/vpn@.service" "https://raw.githubusercontent.com/tuchinsun/jps/master/vpn-gateway/config/systemd/vpnc/vpnc%40.service"
+          wget -O "/etc/systemd/system/vpn@.service" "${baseUrl}/config/systemd/vpnc/vpnc%40.service"
 
-# enable ipset
-# ipset rules
-# firewall rules
-
-configureFirewall:
-
-
+  configureFirewall:
+    - cmd [centos7]: |-
+        systemctl enable ipset
+        wget -qO /tmp/ipset.rules ${baseUrl}/config/firewall/ipset.rules
+        ipset restore < /tmp/ipset.rules
+        wget -qO /tmp/iptables.rules ${baseUrl}/config/firewall/iptables.rules
+        sed "s/CT_PRIVATE_IP/${nodes.vps.intIP}/" -i /tmp/iptables.rules
+        sed "s/CT_PUBLIC_IP/${settings.extip}" -i /tmp/iptables.rules
+        iptables-restore /tmp/iptables.rules
+        port=30000; for ipsport in ${nodes_ips[*]}; do $(iptables -t nat -I MAYBE_DNAT -p tcp -m tcp --dport $port -j DNAT --to-destination ${ipsport}"); port=$((port+1)); done
 
 success:
-   email: |
-     ### VPN-Gateway
-     <br />
-     **URL** http://${env.domain}<br />
-     **Login:** admin<br />
    text: |
-
-      ### VPN-Gateway
+      ### Installation VPN-Gateway finished
       * **URL** http://${env.domain}
       * **Login:** admin
 
