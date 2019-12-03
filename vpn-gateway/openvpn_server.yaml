@@ -1,0 +1,42 @@
+type: install
+version: 1.4
+name: OpenVPN-Server
+logo: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/img/gateway_icon.png
+homepage: https://jelastic.com/
+baseUrl: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/
+description: |
+    OpenVPN Server
+skipNodeEmails: true
+
+nodes:
+- count: 1
+  fixedCloudlets: 4
+  nodeType: centos7
+  nodeGroup: vds
+  port: 22
+  extip: true
+
+onInstall:
+  - install
+
+actions:
+  install:
+    - cmd [centos7]: |-
+        yum install epel-release -y >/dev/null 2>&1
+        yum install net-tools pwgen wget openvpn -y >/dev/null 2>&1
+        wget -qO /root/openvpn-install.sh https://raw.githubusercontent.com/Nyr/openvpn-install/master/openvpn-install.sh
+        echo -e "\n" | bash /root/openvpn-install.sh >/dev/null 2>&1
+        cat /root/client.ovpn
+    - setGlobals:
+        clientConfig: ${response.out}
+    
+success:
+   text: |
+     ### OpenVPN Server
+     
+     Please, use script /root/openvpn-install.sh for  
+     - add new user  
+     - revoke an existing user  
+     ```
+     ${globals.clientConfig}
+     ```
