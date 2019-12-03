@@ -1,0 +1,10 @@
+create INTRA_TRUSTED hash:ip family inet hashsize 64 maxelem 128
+add INTRA_TRUSTED 172.31.248.65
+add INTRA_TRUSTED 172.31.248.64
+add INTRA_TRUSTED 172.31.252.129
+add INTRA_TRUSTED 172.31.240.1
+create JELCORE hash:ip family inet hashsize 64 maxelem 128
+add JELCORE 192.168.1.223
+add JELCORE 192.168.1.205
+add JELCORE 192.168.1.206
+add JELCORE 192.168.1.204

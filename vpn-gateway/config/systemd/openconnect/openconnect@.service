@@ -1,0 +1,12 @@
+[Unit]
+Description=OpenConnect VPN - %i
+After=network.target
+
+[Service]
+Type=simple
+Environment=password=correcthorsebatterystaple
+ExecStart=/bin/sh -c 'cat /etc/openconnect-%i.secret | openconnect --config /etc/openconnect-%i.conf $(cat /etc/openconnect-%i.server)'
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,172 @@
+type: install
+version: 1.4
+name: VPN-Gateway
+logo: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/img/gateway_icon.png
+homepage: https://jelastic.com/
+baseUrl: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/
+description: |
+    VPN-Gateway
+skipNodeEmails: true
+
+settings:
+  fields:
+    - type: radio-fieldset
+      name: vpntype
+      default: 1
+      caption: VPN Technology
+      values:
+        1: OpenVPN
+        2: OpenConnect
+        3: AnyConnect
+      editable: true
+      showIf:
+        1:
+          - hideLabel: false
+            type: text
+            name: openvpn_config
+            caption: OpenVPN Config
+            editable: true
+        2:
+          - hideLabel: false
+            type: string
+            name: vpn_server_name
+            caption: VPN Server Name / IP
+
+          - hideLabel: false
+            defaultMargins:
+              top: 0
+              bottom: 0
+              right: 35
+              left: 0
+            caption: VPN Login / Password
+            type: compositefield
+            name: vpn_creds
+            items:
+                - type: string
+                  name: openconnect_user
+                - type: string
+                  inputType: password
+                  name: openconnect_pass
+        3:
+          - hideLabel: false
+            type: string
+            name: vpn_server_name
+            caption: VPN Server Name / IP
+
+          - hideLabel: false
+            defaultMargins:
+              top: 0
+              bottom: 0
+              right: 35
+              left: 0
+            caption: GROUP Login / Pass
+            type: compositefield
+            name: vpn_creds
+            items:
+                - type: string
+                  name: anyconnect_group_name
+                - type: string
+                  inputType: password
+                  name: anyconnect_group_pass
+
+          - hideLabel: false
+            defaultMargins:
+              top: 0
+              bottom: 0
+              right: 35
+              left: 0
+            caption: USER Login / Pass
+            type: compositefield
+            name: vpn_creds
+            items:
+                - type: string
+                  name: anyconnect_user_name
+                - type: string
+                  inputType: password
+                  name: anyconnect_user_pass
+
+    - type: string
+      caption: External IP
+      name: extip
+      editable: true
+
+    - type: string
+      caption: Nodes SSH PORT
+      name: sshport
+      editable: true
+      default: 22
+      inputSize: 5
+
+    - type: text
+      caption: Nodes IP
+      name: ips
+      editable: true
+
+nodes:
+- count: 1
+  fixedCloudlets: 4
+  nodeType: centos7
+  nodeGroup: vds
+  port: 22
+  extip: false
+
+onInstall:
+  - installCommon
+  - configureFirewall
+
+actions:
+  installCommon:
+    - cmd [centos7]: |-
+        yum install epel-release -y >/dev/null 2>&1
+        yum install net-tools pwgen -y >/dev/null 2>&1
+    # OpenVPN
+    - if (${settings.vpntype} === 1):
+        cmd [centos7]: |-
+          yum install openvpn -y
+          systemctl enable rc-local
+          wget -O "/etc/systemd/system/vpn@.service" "https://raw.githubusercontent.com/tuchinsun/jps/master/vpn-gateway/config/systemd/openvpn/openvpn-client%40.service"
+          mkdir -p /etc/systemd/system/vpn@.service.d
+          echo -e "[Service]\nLimitNPROC=infinity" > /etc/systemd/system/vpn@.service.d/override.conf
+          systemctl daemon-reload
+          systemctl enable vpn@client
+
+        writeFile:
+          - nodeType: centos7
+            path: /etc/openvpn/client/client.ovpn
+            body: ${settings.openvpn_config}
+
+    # OpenConnect
+    - if (${settings.vpntype} === 2):
+        cmd [centos7]: |-
+          yum install openconnect -y
+          wget -O "/etc/systemd/system/vpn@.service" "https://raw.githubusercontent.com/tuchinsun/jps/master/vpn-gateway/config/systemd/openconnect/openconnect%40.service"
+
+
+    # AnyConnect
+    - if (${settings.vpntype} === 3):
+        cmd [centos7]: |-
+          yum install vpnc -y
+          echo -e "IPSec gateway ${settings.vpn_server_name}\nIPSec ID ${settings.anyconnect_group_name}\nIPSec secret ${settings.anyconnect_group_pass}" > /etc/vpnc/client.conf
+          echo -e "Xauth username ${settings.anyconnect_user_name}\nXauth password ${settings.anyconnect_user_pass}" >> /etc/vpnc/client.conf
+          wget -O "/etc/systemd/system/vpn@.service" "https://raw.githubusercontent.com/tuchinsun/jps/master/vpn-gateway/config/systemd/vpnc/vpnc%40.service"
+
+# enable ipset
+# ipset rules
+# firewall rules
+
+configureFirewall:
+
+
+
+success:
+   email: |
+     ### VPN-Gateway
+     <br />
+     **URL** http://${env.domain}<br />
+     **Login:** admin<br />
+   text: |
+
+      ### VPN-Gateway
+      * **URL** http://${env.domain}
+      * **Login:** admin
+
