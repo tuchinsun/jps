@@ -1,4 +1,4 @@
-type: install
+type: update
 version: 1.4
 name: VPN-Gateway
 logo: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/img/gateway_icon.png
@@ -92,8 +92,24 @@ settings:
 
     - type: text
       caption: Nodes IP:PORT
-      name: hnnodes_ips
+      name: hn_ips
       editable: true
+
+    - hideLabel: false
+      defaultMargins:
+        top: 0
+        bottom: 0
+        right: 35
+        left: 0
+      caption: Resolvers IP INT
+      type: compositefield
+      name: resolver_ips
+      items:
+          - type: string
+            name: resolver1
+          - type: string
+            name: resolver2
+
 
 nodes:
 - count: 1
@@ -111,7 +127,7 @@ actions:
   installCommon:
     - cmd [centos7]: |-
         yum install epel-release -y >/dev/null 2>&1
-        yum install net-tools pwgen -y >/dev/null 2>&1
+        yum install net-tools pwgen ipset-service -y >/dev/null 2>&1
     # OpenVPN
     - if (${settings.vpntype} === 1):
         cmd [centos7]: |-
@@ -146,13 +162,21 @@ actions:
   configureFirewall:
     - cmd [centos7]: |-
         systemctl enable ipset
-        wget -qO /tmp/ipset.rules ${baseUrl}/config/firewall/ipset.rules
-        ipset restore < /tmp/ipset.rules
-        wget -qO /tmp/iptables.rules ${baseUrl}/config/firewall/iptables.rules
-        sed "s/CT_PRIVATE_IP/${nodes.vps.intIP}/" -i /tmp/iptables.rules
-        sed "s/CT_PUBLIC_IP/${settings.extip}" -i /tmp/iptables.rules
-        iptables-restore /tmp/iptables.rules
-        port=30000; for ipsport in ${nodes_ips[*]}; do $(iptables -t nat -I MAYBE_DNAT -p tcp -m tcp --dport $port -j DNAT --to-destination ${ipsport}"); port=$((port+1)); done
+        echo ${nodes.centos7.intIP}
+        echo ${settings.extip}
+    - cmd [centos7]: wget -qO /tmp/ipset.rules ${baseUrl}/config/firewall/ipset.rules
+    - cmd [centos7]: ipset flush; ipset destroy; ipset restore < /tmp/ipset.rules; service ipset save
+    - cmd [centos7]: wget -qO /tmp/iptables.rules ${baseUrl}/config/firewall/iptables.rules
+    - cmd [centos7]: sed "s/CT_PRIVATE_IP/${nodes.centos7.intIP}/g" -i /tmp/iptables.rules
+    - cmd [centos7]: sed "s/CT_PUBLIC_IP/${settings.extip}/g" -i /tmp/iptables.rules
+    - cmd [centos7]: iptables-restore /tmp/iptables.rules
+    - cmd [centos7]: port=30000; for ipsport in $(echo -e "${settings.hn_ips}"); do $(iptables -t nat -A MAYBE_DNAT -p tcp -m tcp --dport $port -j DNAT --to-destination ${ipsport}); port=$((port+1)); done;
+    - cmd [centos7]: echo "${settings.resolver1}
+    - cmd [centos7]: echo "${settings.resolver2}
+    - cmd [centos7]: sed "s/RESOLVER1_PRIVATE_IP/${settings.resolver1}/g" -i /tmp/iptables.rules
+    - cmd [centos7]: sed "s/RESOLVER2_PRIVATE_IP/${settings.resolver2}/g" -i /tmp/iptables.rules
+
+    
 
 success:
    text: |

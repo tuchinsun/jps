@@ -7,8 +7,8 @@
 :MAYBE_DNAT - [0:0]
 -A PREROUTING -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 -A PREROUTING -d CT_PUBLIC_IP/32 -p tcp -m tcp --dport 30000:30002 -j MAYBE_DNAT
--A PREROUTING -d CT_PUBLIC_IP/32 -p tcp -m multiport --dports 80,443,4648,4848,4901:4910,4949,7979,8080,8686,8443,10000:19999 -j DNAT --to-destination 10.20.31.11-10.20.31.12 --persistent
--A PREROUTING -d CT_PUBLIC_IP/32 -p udp -m multiport --dports 10000:19999 -j DNAT --to-destination 10.20.31.11-10.20.31.12 --persistent
+-A PREROUTING -d CT_PUBLIC_IP/32 -p tcp -m multiport --dports 80,443,4648,4848,4901:4910,4949,7979,8080,8686,8443,10000:19999 -j DNAT --to-destination RESOLVER1_PRIVATE_IP-RESOLVER2_PRIVATE_IP --persistent
+-A PREROUTING -d CT_PUBLIC_IP/32 -p udp -m multiport --dports 10000:19999 -j DNAT --to-destination RESOLVER1_PRIVATE_IP-RESOLVER2_PRIVATE_IP --persistent
 -A POSTROUTING -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 -A POSTROUTING -o tun+ -j MASQUERADE
 # -A MAYBE_DNAT -p tcp -m tcp --dport 30000 -m comment --comment "infra1" -j DNAT --to-destination 10.20.31.5:22
