@@ -1,7 +1,7 @@
 type: update
 version: 1.4
 name: VPN-Gateway
-logo: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/img/gateway_icon.png
+logo: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/img/gateway_icon2.png
 homepage: https://jelastic.com/
 baseUrl: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/
 description: |
@@ -162,20 +162,17 @@ actions:
   configureFirewall:
     - cmd [centos7]: |-
         systemctl enable ipset
-        echo ${nodes.centos7.intIP}
-        echo ${settings.extip}
-    - cmd [centos7]: wget -qO /tmp/ipset.rules ${baseUrl}/config/firewall/ipset.rules
-    - cmd [centos7]: ipset flush; ipset destroy; ipset restore < /tmp/ipset.rules; service ipset save
-    - cmd [centos7]: wget -qO /tmp/iptables.rules ${baseUrl}/config/firewall/iptables.rules
-    - cmd [centos7]: sed "s/CT_PRIVATE_IP/${nodes.centos7.intIP}/g" -i /tmp/iptables.rules
-    - cmd [centos7]: sed "s/CT_PUBLIC_IP/${settings.extip}/g" -i /tmp/iptables.rules
-    - cmd [centos7]: iptables-restore /tmp/iptables.rules
-    - cmd [centos7]: port=30000; for ipsport in $(echo -e "${settings.hn_ips}"); do $(iptables -t nat -A MAYBE_DNAT -p tcp -m tcp --dport $port -j DNAT --to-destination ${ipsport}); port=$((port+1)); done;
-    - cmd [centos7]: echo "${settings.resolver1}
-    - cmd [centos7]: echo "${settings.resolver2}
-    - cmd [centos7]: sed "s/RESOLVER1_PRIVATE_IP/${settings.resolver1}/g" -i /tmp/iptables.rules
-    - cmd [centos7]: sed "s/RESOLVER2_PRIVATE_IP/${settings.resolver2}/g" -i /tmp/iptables.rules
-
+        iptables -P INPUT ACCEPT && iptables -P OUTPUT ACCEPT && iptables -F && iptables -X && iptables -t nat -F && iptables -t nat -X
+        wget -qO /tmp/ipset.rules ${baseUrl}/config/firewall/ipset.rules
+        ipset flush && ipset destroy; ipset restore < /tmp/ipset.rules && service ipset save
+        wget -qO /tmp/iptables.rules ${baseUrl}/config/firewall/iptables.rules
+        sed "s/CT_PRIVATE_IP/${nodes.centos7.intIP}/g" -i /tmp/iptables.rules
+        sed "s/CT_PUBLIC_IP/${settings.extip}/g" -i /tmp/iptables.rules
+        port=30000; for ipsport in $(echo -e "${settings.hn_ips}"); do $(iptables -t nat -A MAYBE_DNAT -p tcp -m tcp --dport $port -j DNAT --to-destination ${ipsport}); port=$((port+1)); done;
+        sed "s/RESOLVER1_PRIVATE_IP/${settings.resolver1}/g" -i /tmp/iptables.rules
+        sed "s/RESOLVER2_PRIVATE_IP/${settings.resolver2}/g" -i /tmp/iptables.rules
+        iptables-restore /tmp/iptables.rules
+        service iptables save
     
 
 success:
