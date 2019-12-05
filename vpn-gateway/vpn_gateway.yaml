@@ -1,7 +1,7 @@
 type: update
 version: 1.4
 name: VPN-Gateway
-logo: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/img/gateway_icon2.png
+logo: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/img/vpn_icon.png
 homepage: https://jelastic.com/
 baseUrl: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/
 description: |
