@@ -7,6 +7,8 @@ JPS to automation deploy VPN gateway to customers
 
 Copy and deploy.
 
+![Installation](img/docs/init_install.jpg)
+
 1. Choose VPN Technology:
   - OpenVPN
   - OpenConnect
