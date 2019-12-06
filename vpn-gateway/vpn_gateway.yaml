@@ -1,4 +1,4 @@
-type: install
+type: update
 version: 1.4
 name: VPN-Gateway
 logo: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/img/vpn_icon.png
@@ -177,12 +177,22 @@ actions:
         sed "s/RESOLVER1_PRIVATE_IP/${settings.resolver1}/g" -i /tmp/iptables.rules
         sed "s/RESOLVER2_PRIVATE_IP/${settings.resolver2}/g" -i /tmp/iptables.rules
         iptables-restore /tmp/iptables.rules
-        port=30000; for ipsport in $(echo -e "${settings.hn_ips}"); do $(iptables -t nat -A MAYBE_DNAT -p tcp -m tcp --dport $port -j DNAT --to-destination ${ipsport}); port=$((port+1)); done;
-        service iptables save
+        echo "<hoster name=\"HOSTER_NAME\">" > /dev/shm/static.xml
+        port=30000; for ipsport in $(echo -e "${settings.hn_ips}");
+        do $(iptables -t nat -A MAYBE_DNAT -p tcp -m tcp --dport $port -j DNAT --to-destination ${ipsport} ); node_ip=$(echo ${ipsport} | cut -d: -f1); echo "<server hostname=\"hn-${node_ip}\" ip=\"${settings.extip}\" ip6=\"::1\" port=\"${port}\" />" >> /dev/shm/static.xml; port=$((port+1)); done;
+        echo "</hoster>" >> /dev/shm/static.xml
+        service iptables save >/dev/null
+        cat /dev/shm/static.xml
+    - setGlobals:
+        xml: ${response.out}
     
 
 success:
    text: |
       ### Installation VPN-Gateway finished
+      Copy/Paste xml code to static.xml  
+      ```
+      ${globals.xml}
+      ```
 
 
