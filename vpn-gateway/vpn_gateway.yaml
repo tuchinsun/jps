@@ -1,4 +1,4 @@
-type: update
+type: install
 version: 1.4
 name: VPN-Gateway
 logo: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/img/vpn_icon.png
@@ -121,6 +121,7 @@ nodes:
 
 onInstall:
   - installCommon
+  - configureSystemd
   - configureFirewall
 
 actions:
@@ -135,9 +136,6 @@ actions:
           systemctl enable rc-local
           wget -O "/etc/systemd/system/vpn@.service" "${baseUrl}/config/systemd/openvpn/openvpn-client%40.service"
           mkdir -p /etc/systemd/system/vpn@.service.d
-          echo -e "[Service]\nLimitNPROC=infinity" > /etc/systemd/system/vpn@.service.d/override.conf
-          systemctl daemon-reload
-          systemctl enable vpn@client
 
         writeFile:
           - nodeType: centos7
@@ -149,7 +147,9 @@ actions:
         cmd [centos7]: |-
           yum install openconnect -y
           wget -O "/etc/systemd/system/vpn@.service" "${baseUrl}/config/systemd/openconnect/openconnect%40.service"
-
+          echo ${settings.openconnect_pass} > /etc/openconnect-client.secret
+          echo ${settings.vpn_server_name} > /etc/openconnect-client.server
+          echo -e "user=${settingns.openconnect_user}\npasswd-on-stdin\nreconnect-timeout=30\nservercert=PUT SHA256\n" > /etc/openconnect-client.conf
 
     # AnyConnect
     - if (${settings.vpntype} === 3):
@@ -158,6 +158,12 @@ actions:
           echo -e "IPSec gateway ${settings.vpn_server_name}\nIPSec ID ${settings.anyconnect_group_name}\nIPSec secret ${settings.anyconnect_group_pass}" > /etc/vpnc/client.conf
           echo -e "Xauth username ${settings.anyconnect_user_name}\nXauth password ${settings.anyconnect_user_pass}" >> /etc/vpnc/client.conf
           wget -O "/etc/systemd/system/vpn@.service" "${baseUrl}/config/systemd/vpnc/vpnc%40.service"
+
+  configureSystemd:
+    - cmd [centos7]: |-
+          echo -e "[Service]\nLimitNPROC=infinity" > /etc/systemd/system/vpn@.service.d/override.conf
+          systemctl daemon-reload
+          systemctl enable vpn@client
 
   configureFirewall:
     - cmd [centos7]: |-
@@ -168,16 +174,15 @@ actions:
         wget -qO /tmp/iptables.rules ${baseUrl}/config/firewall/iptables.rules
         sed "s/CT_PRIVATE_IP/${nodes.centos7.intIP}/g" -i /tmp/iptables.rules
         sed "s/CT_PUBLIC_IP/${settings.extip}/g" -i /tmp/iptables.rules
-        port=30000; for ipsport in $(echo -e "${settings.hn_ips}"); do $(iptables -t nat -A MAYBE_DNAT -p tcp -m tcp --dport $port -j DNAT --to-destination ${ipsport}); port=$((port+1)); done;
         sed "s/RESOLVER1_PRIVATE_IP/${settings.resolver1}/g" -i /tmp/iptables.rules
         sed "s/RESOLVER2_PRIVATE_IP/${settings.resolver2}/g" -i /tmp/iptables.rules
         iptables-restore /tmp/iptables.rules
+        port=30000; for ipsport in $(echo -e "${settings.hn_ips}"); do $(iptables -t nat -A MAYBE_DNAT -p tcp -m tcp --dport $port -j DNAT --to-destination ${ipsport}); port=$((port+1)); done;
         service iptables save
     
 
 success:
    text: |
       ### Installation VPN-Gateway finished
-      * **URL** http://${env.domain}
-      * **Login:** admin
+
 
