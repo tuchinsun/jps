@@ -4,8 +4,10 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStartPre=mknod /dev/ppp c 108 0; chmod 600 /dev/ppp; source 
-ExecStart=/bin/sh -c "/usr/sbin/netExtender -u ${NETEXT_USER} -p ${NETEXT_PASSWORD} -d ${NETEXT_DOMAIN}"
+User=root
+ExecStartPre=/bin/bash -c "/usr/bin/mknod /dev/ppp c 108 0 ; /usr/bin/chmod 666 /dev/ppp"
+EnvironmentFile=/etc/netextender/netextender.conf
+ExecStart=/bin/bash -c "/usr/bin/yes | /usr/sbin/netExtender --auto-reconnect -u ${NETEXT_USER} -p $(cat /etc/netextender/netextender.secret) -d ${NETEXT_DOMAIN} ${NETEXT_SERVER}"
 Restart=always
 
 [Install]
