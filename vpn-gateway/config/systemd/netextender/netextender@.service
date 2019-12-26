@@ -1,0 +1,12 @@
+[Unit]
+Description=NetExtender VPN - %i
+After=network.target
+
+[Service]
+Type=simple
+ExecStartPre=mknod /dev/ppp c 108 0; chmod 600 /dev/ppp; source 
+ExecStart=/bin/sh -c "/usr/sbin/netExtender -u ${NETEXT_USER} -p ${NETEXT_PASSWORD} -d ${NETEXT_DOMAIN}"
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

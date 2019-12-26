@@ -1,4 +1,4 @@
-type: update
+type: install
 version: 1.4
 name: VPN-Gateway
 logo: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/img/vpn_icon.png
@@ -18,6 +18,7 @@ settings:
         1: OpenVPN
         2: OpenConnect
         3: AnyConnect
+        4: NetExtender
       editable: true
       showIf:
         1:
@@ -84,6 +85,26 @@ settings:
                 - type: string
                   inputType: password
                   name: anyconnect_user_pass
+        4:
+          - hideLabel: false
+            type: string
+            name: netextender_server
+            caption: VPN Server Name / IP
+
+          - hideLabel: false
+            type: string
+            name: netextender_user
+            caption: VPN User Name
+
+          - hideLabel: false
+            type: string
+            name: netextender_password
+            caption: VPN Password
+
+          - hideLabel: false
+            type: string
+            name: netextender_domain
+            caption: VPN Domain
 
     - type: string
       caption: External IP
@@ -159,8 +180,18 @@ actions:
           echo -e "Xauth username ${settings.anyconnect_user_name}\nXauth password ${settings.anyconnect_user_pass}" >> /etc/vpnc/client.conf
           wget -O "/etc/systemd/system/vpn@.service" "${baseUrl}/config/systemd/vpnc/vpnc%40.service"
 
+    # NetExtender
+    - if (${settings.vpntype === 4}):
+        cmd [centos7]: |-
+          yum -y install http://dot.jelastic.com/download/tucha/vpn/NetExtender.Linux.8.6.801-1.x86.64.rpm
+          wget -O "/etc/systemd/system/vpn@.service" "${baseUrl}/config/systemd/netextender/netextender%40.service"
+          echo "NETEXT_USER=\"${settings.netextender_user}\"" > /etc/netextender.conf
+          echo "NETEXT_PASSWORD=\"${settings.netextender_password}\"" >> /etc/netextender.conf
+          echo "NETEXT_DOMAIN=\"${settings.netextender_domain}\"" >> /etc/netextender.conf
+
   configureSystemd:
     - cmd [centos7]: |-
+          mkdir /etc/systemd/system/vpn@.service.d
           echo -e "[Service]\nLimitNPROC=infinity" > /etc/systemd/system/vpn@.service.d/override.conf
           systemctl daemon-reload
           systemctl enable vpn@client

@@ -13,6 +13,7 @@ Copy and deploy.
   - OpenVPN
   - OpenConnect
   - AnyConnect
+  - NetExtender
 
 2. Fill the fields
 #### OpenVPN fields
@@ -27,6 +28,12 @@ Copy and deploy.
 *GROUP Login / Pass* -  
 *USER Login / Pass* -  
 
+#### NetExtender fields
+*VPN Server Name / IP* - put in field FQDN or IP address  
+*GROUP Login / Pass* -  
+*USER Login / Pass* -  
+
+
 #### Common fields
 *External IP* - put external IP for VPN-Gateway container  
 *Nodes IP:PORT* - put in one per line list hard node IP, SSH port separate by ":"  
@@ -37,9 +44,7 @@ Copy and deploy.
 CTID=
 PUBLIC_IP=
 PRIVATE_IP=
-vzctl set $CTID --ipdel all --save
 vzctl set $CTID --ipadd $PUBLIC_IP --save
-vzctl set $CTID --ipadd $PRIVATE_IP --save
 vzctl exec $CTID systemctl start  vpn@client
 vzctl exec $CTID systemctl status  vpn@client
 ```

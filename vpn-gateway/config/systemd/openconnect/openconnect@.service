@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-Environment=password=correcthorsebatterystaple
+Environment=password=
 ExecStart=/bin/sh -c 'cat /etc/openconnect-%i.secret | openconnect --config /etc/openconnect-%i.conf $(cat /etc/openconnect-%i.server)'
 Restart=always
 
