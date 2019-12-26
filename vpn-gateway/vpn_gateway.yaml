@@ -1,4 +1,4 @@
-type: update
+type: install
 version: 1.4
 name: VPN-Gateway
 logo: https://github.com/tuchinsun/jps/raw/master/vpn-gateway/img/vpn_icon.png
