@@ -185,12 +185,12 @@ actions:
     - if (${settings.vpntype} === 4):
         cmd [centos7]: |-
           yum -y install http://dot.jelastic.com/download/tucha/vpn/NetExtender.Linux.8.6.801-1.x86.64.rpm
-          wget -O "/etc/systemd/system/vpn@.service" "${baseUrl}/config/systemd/netextender/netextender%40.service"
+          wget -qO "/etc/systemd/system/vpn@.service" "${baseUrl}/config/systemd/netextender/netextender%40.service"
           mkdir /etc/netextender
           echo "NETEXT_USER=\"${settings.netextender_user}\"" > /etc/netextender/netextender.conf
-          echo -n "${settings.netextender_password}" > /etc/netextender/netextender.secret
           echo "NETEXT_DOMAIN=\"${settings.netextender_domain}\"" >> /etc/netextender/netextender.conf
-          echo "NETEXT_SERVER=\"${esttings.netextender_server}\"" >> /etc/netextender/netextender.conf
+          echo "NETEXT_SERVER=\"${settings.netextender_server}\"" >> /etc/netextender/netextender.conf
+          echo -n "${settings.netextender_password}" > /etc/netextender/netextender.secret
 
   configureSystemd:
     - cmd [centos7]: |-
