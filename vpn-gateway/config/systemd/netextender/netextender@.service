@@ -7,7 +7,8 @@ Type=simple
 User=root
 ExecStartPre=/bin/bash -c "/usr/bin/mknod /dev/ppp c 108 0 ; /usr/bin/chmod 666 /dev/ppp"
 EnvironmentFile=/etc/netextender/netextender.conf
-ExecStart=/bin/bash -c "/usr/bin/yes | /usr/sbin/netExtender --auto-reconnect -u ${NETEXT_USER} -p $(cat /etc/netextender/netextender.secret) -d ${NETEXT_DOMAIN} ${NETEXT_SERVER}"
+# ExecStart=/bin/bash -c "/usr/bin/yes | /usr/sbin/netExtender --auto-reconnect -u ${NETEXT_USER} -p $(cat /etc/netextender/netextender.secret) -d ${NETEXT_DOMAIN} ${NETEXT_SERVER}"
+ExecStart=/usr/bin/expect /etc/netextender/netExtender.sh
 Restart=always
 
 [Install]
