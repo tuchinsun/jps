@@ -10,5 +10,7 @@ send "Y\r"
 expect eof
 
 
-jem docker run --ctid ${CTID}
+
+denis.tuchkov@jelastic.com
+YE0AfKTHO2m7U7XtUrMqx
 

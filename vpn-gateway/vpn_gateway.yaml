@@ -192,6 +192,7 @@ actions:
           echo "NETEXT_PASS=\"${settings.netextender_password}\"" >> /etc/netextender/netextender.conf
           echo "NETEXT_DOMAIN=\"${settings.netextender_domain}\"" >> /etc/netextender/netextender.conf
           echo "NETEXT_SERVER=\"${settings.netextender_server}\"" >> /etc/netextender/netextender.conf
+          echo -e "persist\nlcp-echo-interval5" >> /etc/ppp/peers/sslvpn
 
   configureSystemd:
     - cmd [centos7]: |-
